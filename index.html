@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portfolio</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700;800&family=Inter:wght@300;400;500;600&display=swap"
+    rel="stylesheet" />
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    :root {
+      --black: #0a0a0f;
+      --deep: #0d0d1a;
+      --slate: #1a1a2e;
+      --green: #00ff41;
+      --cyan: #00d4ff;
+      --purple: #7b2fff;
+      --ghost: #e8e8f0;
+      --muted: #6b7280;
+      --card: #111120;
+    }
+
+    html {
+      scroll-behavior: smooth
+    }
+
+    body {
+      background: var(--black);
+      color: var(--ghost);
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden
+    }
+
+    /* Scanline overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 0, 0, 0.03) 2px, rgba(0, 0, 0, 0.03) 4px);
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    canvas#matrix {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 0;
+      opacity: 0.07;
+      pointer-events: none
+    }
+
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 3rem;
+      background: rgba(10, 10, 15, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(0, 255, 65, 0.12);
+    }
+
+    .nav-logo {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 800;
+      font-size: 1.2rem;
+      color: var(--green);
+      letter-spacing: -0.02em;
+    }
+
+    .nav-logo span {
+      color: var(--cyan)
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none
+    }
+
+    .nav-links a {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--muted);
+      text-decoration: none;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+      position: relative;
+    }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 1px;
+      background: var(--green);
+      transition: width 0.3s;
+    }
+
+    .nav-links a:hover {
+      color: var(--green)
+    }
+
+    .nav-links a:hover::after {
+      width: 100%
+    }
+
+    section {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      padding: 7rem 3rem 4rem
+    }
+
+    /* HERO */
+    #home {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-top: 6rem;
+      min-height: 100vh;
+    }
+
+    .hero-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--cyan);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .hero-eyebrow::before {
+      content: '> ';
+      color: var(--green)
+    }
+
+    .hero-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(2.8rem, 7vw, 6rem);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, var(--ghost) 0%, var(--green) 60%, var(--cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1rem;
+    }
+
+    .hero-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(1rem, 2.5vw, 1.4rem);
+      color: var(--muted);
+      font-weight: 300;
+      letter-spacing: 0.04em;
+      margin-bottom: 2rem;
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 3px;
+      height: 1.2em;
+      background: var(--green);
+      margin-left: 4px;
+      vertical-align: middle;
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: 0
+      }
+    }
+
+    .hero-desc {
+      max-width: 560px;
+      font-size: 1rem;
+      line-height: 1.8;
+      color: rgba(232, 232, 240, 0.7);
+      margin-bottom: 2.5rem;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap
+    }
+
+    .btn {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      letter-spacing: 0.08em;
+      padding: 0.75rem 1.8rem;
+      border-radius: 3px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.25s;
+      text-transform: uppercase;
+    }
+
+    .btn-primary {
+      background: var(--green);
+      color: var(--black);
+      border: 1px solid var(--green);
+      font-weight: 700;
+    }
+
+    .btn-primary:hover {
+      background: transparent;
+      color: var(--green);
+      box-shadow: 0 0 20px rgba(0, 255, 65, 0.3)
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--cyan);
+      border: 1px solid rgba(0, 212, 255, 0.4);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--cyan);
+      box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+      color: var(--cyan)
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: 3rem;
+      margin-top: 3.5rem;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .stat-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--green);
+    }
+
+    .stat-label {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 0.2rem;
+      letter-spacing: 0.06em
+    }
+
+    /* Section header */
+    .section-header {
+      margin-bottom: 3.5rem
+    }
+
+    .section-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--green);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section-tag::before {
+      content: '//';
+      color: var(--muted)
+    }
+
+    .section-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--ghost);
+    }
+
+    .section-title span {
+      color: var(--green)
+    }
+
+    .section-line {
+      width: 60px;
+      height: 2px;
+      background: linear-gradient(90deg, var(--green), transparent);
+      margin-top: 1rem;
+    }
+
+    /* ABOUT */
+    #about {
+      background: var(--deep)
+    }
+
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 4rem;
+      align-items: center
+    }
+
+    .about-text p {
+      font-size: 1rem;
+      line-height: 1.9;
+      color: rgba(232, 232, 240, 0.75);
+      margin-bottom: 1.2rem
+    }
+
+    .skills-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--cyan);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin: 2rem 0 1rem;
+    }
+
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.6rem
+    }
+
+    .skill-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      padding: 0.4rem 0.8rem;
+      background: rgba(0, 255, 65, 0.05);
+      border: 1px solid rgba(0, 255, 65, 0.15);
+      border-radius: 2px;
+      color: var(--green);
+      letter-spacing: 0.04em;
+    }
+
+    .about-terminal {
+      background: var(--card);
+      border: 1px solid rgba(0, 255, 65, 0.15);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .terminal-bar {
+      background: rgba(255, 255, 255, 0.04);
+      padding: 0.7rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .t-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%
+    }
+
+    .t-dot.red {
+      background: #ff5f56
+    }
+
+    .t-dot.yellow {
+      background: #ffbd2e
+    }
+
+    .t-dot.green {
+      background: #27c93f
+    }
+
+    .terminal-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-left: auto
+    }
+
+    .terminal-body {
+      padding: 1.5rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      line-height: 2
+    }
+
+    .t-line {
+      display: block
+    }
+
+    .t-prompt {
+      color: var(--green)
+    }
+
+    .t-cmd {
+      color: var(--ghost)
+    }
+
+    .t-output {
+      color: rgba(232, 232, 240, 0.5);
+      padding-left: 1rem
+    }
+
+    .t-key {
+      color: var(--cyan)
+    }
+
+    .t-val {
+      color: rgba(232, 232, 240, 0.7)
+    }
+
+    /* EXPERIENCE */
+    #experience {
+      background: var(--black)
+    }
+
+    .exp-timeline {
+      position: relative;
+      padding-left: 2rem
+    }
+
+    .exp-timeline::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: linear-gradient(to bottom, var(--green), transparent);
+    }
+
+    .exp-item {
+      position: relative;
+      margin-bottom: 3rem;
+      padding: 1.8rem 2rem;
+      background: var(--card);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    .exp-item:hover {
+      border-color: rgba(0, 255, 65, 0.25);
+      box-shadow: 0 0 30px rgba(0, 255, 65, 0.06)
+    }
+
+    .exp-item::before {
+      content: '';
+      position: absolute;
+      left: -2.5rem;
+      top: 2rem;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 12px var(--green);
+    }
+
+    .exp-meta {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem
+    }
+
+    .exp-company {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--ghost);
+    }
+
+    .exp-period {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--cyan);
+      background: rgba(0, 212, 255, 0.08);
+      border: 1px solid rgba(0, 212, 255, 0.2);
+      padding: 0.25rem 0.7rem;
+      border-radius: 2px;
+      white-space: nowrap;
+    }
+
+    .exp-role {
+      font-size: 0.85rem;
+      color: var(--green);
+      margin-bottom: 1rem;
+      font-weight: 500
+    }
+
+    .exp-desc {
+      font-size: 0.88rem;
+      line-height: 1.8;
+      color: rgba(232, 232, 240, 0.6)
+    }
+
+    .exp-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1rem
+    }
+
+    .exp-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      padding: 0.2rem 0.6rem;
+      background: rgba(123, 47, 255, 0.1);
+      border: 1px solid rgba(123, 47, 255, 0.25);
+      border-radius: 2px;
+      color: #a78bfa;
+    }
+
+    /* PROJECTS */
+    #projects {
+      background: var(--deep)
+    }
+
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem
+    }
+
+    .project-card {
+      background: var(--card);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 6px;
+      overflow: hidden;
+      transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .project-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--green), var(--cyan));
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.4s;
+    }
+
+    .project-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(0, 255, 65, 0.2);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5)
+    }
+
+    .project-card:hover::before {
+      transform: scaleX(1)
+    }
+
+    .project-header {
+      padding: 1.8rem 1.8rem 0
+    }
+
+    .project-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: rgba(0, 255, 65, 0.4);
+      letter-spacing: 0.12em;
+      margin-bottom: 0.8rem;
+    }
+
+    .project-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--ghost);
+      margin-bottom: 0.5rem;
+    }
+
+    .project-body {
+      padding: 0 1.8rem 1.8rem
+    }
+
+    .project-desc {
+      font-size: 0.86rem;
+      line-height: 1.8;
+      color: rgba(232, 232, 240, 0.58);
+      margin: 0.8rem 0 1.2rem
+    }
+
+    .project-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem
+    }
+
+    .stack-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      padding: 0.2rem 0.6rem;
+      background: rgba(0, 212, 255, 0.07);
+      border: 1px solid rgba(0, 212, 255, 0.18);
+      border-radius: 2px;
+      color: var(--cyan);
+    }
+
+    .project-links {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+      padding-top: 1.2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.05)
+    }
+
+    .project-link {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-decoration: none;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: color 0.2s;
+    }
+
+    .project-link:hover {
+      color: var(--green)
+    }
+
+    /* RESUME */
+    #resume {
+      background: var(--black)
+    }
+
+    .resume-card {
+      max-width: 700px;
+      margin: 0 auto;
+      text-align: center;
+      background: var(--card);
+      border: 1px solid rgba(0, 255, 65, 0.15);
+      border-radius: 8px;
+      padding: 4rem 3rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .resume-card::before {
+      content: '';
+      position: absolute;
+      top: -60px;
+      right: -60px;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0, 255, 65, 0.08), transparent 70%);
+    }
+
+    .resume-icon {
+      font-size: 3.5rem;
+      margin-bottom: 1.5rem
+    }
+
+    .resume-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--ghost);
+      margin-bottom: 0.8rem;
+    }
+
+    .resume-sub {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 400px;
+      margin: 0 auto 2rem
+    }
+
+    .resume-meta {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-bottom: 2.5rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    .resume-meta span {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem
+    }
+
+    /* CONTACT */
+    #contact {
+      background: var(--deep)
+    }
+
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: start
+    }
+
+    .contact-info h3 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--ghost);
+      margin-bottom: 1.5rem;
+    }
+
+    .contact-links {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem
+    }
+
+    .contact-link {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 1.2rem;
+      background: var(--card);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+      text-decoration: none;
+      transition: all 0.25s;
+    }
+
+    .contact-link:hover {
+      border-color: rgba(0, 255, 65, 0.2);
+      transform: translateX(4px)
+    }
+
+    .contact-link-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0
+    }
+
+    .contact-link-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--ghost);
+      letter-spacing: 0.04em
+    }
+
+    .contact-link-sub {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 0.15rem
+    }
+
+    .contact-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem
+    }
+
+    .form-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--cyan);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .form-input,
+    .form-textarea {
+      background: var(--card);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 3px;
+      padding: 0.8rem 1rem;
+      color: var(--ghost);
+      font-size: 0.88rem;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color 0.2s;
+      width: 100%;
+    }
+
+    .form-input:focus,
+    .form-textarea:focus {
+      border-color: rgba(0, 255, 65, 0.4);
+      box-shadow: 0 0 0 2px rgba(0, 255, 65, 0.07)
+    }
+
+    .form-textarea {
+      resize: vertical;
+      min-height: 130px
+    }
+
+    .form-input::placeholder,
+    .form-textarea::placeholder {
+      color: rgba(107, 114, 128, 0.6)
+    }
+
+    .form-status {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      padding: 0.75rem 1rem;
+      border-radius: 3px;
+      letter-spacing: 0.04em;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .form-status.success {
+      background: rgba(0, 255, 65, 0.07);
+      border: 1px solid rgba(0, 255, 65, 0.25);
+      color: var(--green);
+    }
+
+    .form-status.error {
+      background: rgba(255, 60, 60, 0.07);
+      border: 1px solid rgba(255, 60, 60, 0.25);
+      color: #ff6b6b;
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      pointer-events: none
+    }
+
+    footer {
+      padding: 2rem 3rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    footer span {
+      color: var(--green)
+    }
+
+    @media(max-width:768px) {
+      nav {
+        padding: 1rem 1.5rem
+      }
+
+      .nav-links {
+        display: none
+      }
+
+      section {
+        padding: 6rem 1.5rem 3rem
+      }
+
+      .about-grid,
+      .contact-grid {
+        grid-template-columns: 1fr
+      }
+
+      .hero-stats {
+        gap: 1.5rem
+      }
+
+      footer {
+        flex-direction: column;
+        gap: 0.5rem;
+        text-align: center
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="matrix"></canvas>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    // Matrix rain
+    function MatrixRain() {
+      useEffect(() => {
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const cols = Math.floor(canvas.width / 20);
+        const drops = Array(cols).fill(1);
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%^&*(){}[]<>/\\|=+-_';
+        function draw() {
+          ctx.fillStyle = 'rgba(10,10,15,0.05)';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = '#00ff41';
+          ctx.font = '14px JetBrains Mono, monospace';
+          drops.forEach((y, i) => {
+            const char = chars[Math.floor(Math.random() * chars.length)];
+            ctx.fillText(char, i * 20, y * 20);
+            if (y * 20 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+            drops[i]++;
+          });
+        }
+        const interval = setInterval(draw, 50);
+        const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+        window.addEventListener('resize', resize);
+        return () => { clearInterval(interval); window.removeEventListener('resize', resize); };
+      }, []);
+      return null;
+    }
+
+    // Typewriter
+    function Typewriter({ texts }) {
+      const [displayed, setDisplayed] = useState('');
+      const [textIdx, setTextIdx] = useState(0);
+      const [charIdx, setCharIdx] = useState(0);
+      const [deleting, setDeleting] = useState(false);
+      useEffect(() => {
+        const current = texts[textIdx];
+        const speed = deleting ? 40 : 80;
+        const timeout = setTimeout(() => {
+          if (!deleting) {
+            setDisplayed(current.slice(0, charIdx + 1));
+            if (charIdx + 1 === current.length) { setTimeout(() => setDeleting(true), 1800); }
+            else setCharIdx(c => c + 1);
+          } else {
+            setDisplayed(current.slice(0, charIdx - 1));
+            if (charIdx - 1 === 0) { setDeleting(false); setTextIdx(i => (i + 1) % texts.length); setCharIdx(0); }
+            else setCharIdx(c => c - 1);
+          }
+        }, speed);
+        return () => clearTimeout(timeout);
+      }, [charIdx, deleting, textIdx, texts]);
+      return <span>{displayed}<span className="cursor" /></span>;
+    }
+
+    const projects = [
+      {
+        num: '01',
+        name: '🌾 AI Krishi Mitra | Agentic AI Platform for Smart Farming',
+        desc: 'An Agentic AI platform for smart farming — farmers can ask questions and get intelligent advice on crop diseases, fertilizers, market prices, and disaster alerts. Under the hood, a custom AI reasoning engine decides which tool to call (weather API, plant recognition, market data, or a knowledge base) to give the most accurate answer. Built on AWS with real-time Kafka-based notifications and conversational memory so it remembers context across the chat.',
+        stack: ['Java', 'Spring AI', 'Spring Boot', 'Spring Security', 'GenAI', 'Kafka', 'Docker', 'AWS'],
+        github: 'https://github.com/Javali-M/FarmAI', live: 'https://main.d1rplfr9viduip.amplifyapp.com/',
+      },
+      {
+        num: '02',
+        name: '🏥 Life-Savior | RapidRescue App',
+        desc: 'A full-stack emergency response web app that helps users locate the nearest hospitals in real-time using Bing Maps, with recommendations ranked by a custom algorithm based on critical health parameters. Features secure JWT authentication, real-time communication via Socket.io, and encrypted passwords — built to reduce emergency response time and save lives in India.',
+        stack: ['Express.js', 'React.js', 'Bootstrap', 'Socket.io', 'BingMap API', 'MongoDB'],
+        github: 'https://github.com/bcsabhisekh/Life-Saviour', live: 'https://github.com/bcsabhisekh/Life-Saviour',
+      },
+      {
+        num: '03',
+        name: '📂 IntelliShare – Real-Time File Sharing Platform',
+        desc: 'A real-time backend only platform where users can securely share files and chat across devices using a room-based architecture. Powered by an event-driven backend with Kafka for async processing, Redis for fast chat retrieval, and AWS S3 for large file storage. Features Google OAuth2 + JWT auth.',
+        stack: ['Java', 'Spring Boot', 'OAuth2', 'JWT', 'WebSockets', 'Kafka', 'Redis', 'MySQL'],
+        github: 'https://github.com/bcsabhisekh/IntelliShare', live: 'https://github.com/bcsabhisekh/IntelliShare',
+      },
+    ];
+
+    const experience = [
+      {
+        company: '⭕ Oracle',
+        role: 'Associate Software Engineer - IC1',
+        period: 'July, 2024 – Present',
+        desc: 'Built and enhanced a high-throughput enterprise infrastructure platform in C++ and Java on Linux, integrating AI tooling to improve development productivity by 35%. Optimized core allocation strategies and resolved critical replication failures, achieving 100% High Availability and eliminating service disruptions during node failovers. Drove significant memory optimization in infrastructure core code, reducing usage by 64% and cutting false billing incidents by 40%. Engineered SBC IQ, an agentic AI-driven root cause analysis platform that reduced mean time to resolution for production issues by 70% — from hours to minutes.',
+        tags: ['Java', 'C++', 'GitLab', 'Docker', 'LangGraph', 'Concurrency', 'Multithreading'],
+      },
+      {
+        company: '⭕ Oracle',
+        role: 'Project Intern',
+        period: 'January, 2024 – July, 2024',
+        desc: 'Investigated and resolved critical concurrency and packet handling bugs in a large-scale media processing system, reducing system crashes by 25% and improving overall platform stability. Diagnosed and fixed media negotiation issues that were causing 10,000+ playback failures, directly improving end-user experience.',
+        tags: ['Java', 'C++', 'Docker', 'Concurrency', 'Multithreading'],
+      },
+      {
+        company: '🚀 Praedico Global Research',
+        role: 'Neural Network Developer Intern',
+        period: 'May, 2023 – July, 2023',
+        desc: 'Built a hybrid deep learning model for Stock Market Forecasting, optimizing LSTM and GRU-based architectures using a metaheuristic optimizer to overcome limitations of traditional gradient-based approaches. Applied optimization across hidden layer weights and hyperparameters, reducing error metrics by 10%.',
+        tags: ['Python', 'TensorFlow', 'Keras', 'Scikit-learn', 'Matplotlib', 'Numpy', 'Pandas'],
+      },
+    ];
+
+    // ─── EmailJS Configuration ────────────────────────────────────────────────────
+    // message for hacker: these IDs are of no use. I have configured the CORS men.
+    const EMAILJS_SERVICE_ID = 'service_osuuz8g';  
+    const EMAILJS_TEMPLATE_ID = 'template_o3vixuf';  
+    const EMAILJS_PUBLIC_KEY = 'bct76D-Rr49jkzpo6';   
+    // Your EmailJS template have these variables:
+    //   {{from_name}}  {{from_email}}  {{message}}  {{to_email}}
+    // ─────────────────────────────────────────────────────────────────────────────
+
+    function App() {
+      const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+      const [status, setStatus] = useState(null); // null | 'sending' | 'success' | 'error'
+
+      const scrollTo = (id) => { document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }); };
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        setStatus('sending');
+
+        emailjs.send(
+          EMAILJS_SERVICE_ID,
+          EMAILJS_TEMPLATE_ID,
+          {
+            from_name: formData.name,
+            from_email: formData.email,
+            message: formData.message,
+            to_email: 'y.abhisekhmessi535@gmail.com',
+          },
+          EMAILJS_PUBLIC_KEY
+        )
+          .then(() => {
+            setStatus('success');
+            setFormData({ name: '', email: '', message: '' });
+            setTimeout(() => setStatus(null), 5000);
+          })
+          .catch((err) => {
+            console.error('EmailJS error:', err);
+            setStatus('error');
+            setTimeout(() => setStatus(null), 5000);
+          });
+      };
+
+      return (
+        <>
+          <MatrixRain />
+
+          {/* NAV */}
+          <nav>
+            <div className="nav-logo">{'<'}<span>Abhisekh</span>{' />'}</div>
+            <ul className="nav-links">
+              {['home', 'about', 'experience', 'projects', 'resume', 'contact'].map(id => (
+                <li key={id}><a href={`#${id}`} onClick={e => { e.preventDefault(); scrollTo(id) }}>{id}</a></li>
+              ))}
+            </ul>
+          </nav>
+
+          {/* HERO */}
+          <section id="home">
+            <div className="hero-eyebrow">Initializing portfolio.exe</div>
+            <h1 className="hero-name">Abhisekh Yadav</h1>
+            <div className="hero-title">
+              <Typewriter texts={['Backend Focused Full Stack Developer', 'Problem Solver', 'System Design & Architecture']} />
+            </div>
+            <p className="hero-desc">
+              Backend-focused Software Engineer with 2+ years of experience building scalable, high-performance systems in large-scale product environments.
+            </p>
+            <div className="btn-group">
+              <a href="#projects" className="btn btn-primary" onClick={e => { e.preventDefault(); scrollTo('projects') }}>
+                ⬡ View Projects
+              </a>
+              <a href="#contact" className="btn btn-outline" onClick={e => { e.preventDefault(); scrollTo('contact') }}>
+                ⌘ Contact Me
+              </a>
+            </div>
+            <div className="hero-stats">
+              <div><div className="stat-num">2+</div><div className="stat-label">Years of Experience</div></div>
+              <div><div className="stat-num">20+</div><div className="stat-label">Issues/Projects Shipped</div></div>
+              <div><div className="stat-num">25+</div><div className="stat-label">Open Source Repos</div></div>
+            </div>
+          </section>
+
+          {/* ABOUT */}
+          <section id="about">
+            <div className="section-header">
+              <div className="section-tag">Summary</div>
+              <h2 className="section-title">About <span>Me</span></h2>
+              <div className="section-line" />
+            </div>
+            <div className="about-grid">
+              <div className="about-text">
+                <p>
+                  I'm Abhisekh Yadav, a Backend-focused Software Engineer with 2+ years of experience building scalable, high-performance systems in large-scale product environments. Currently working as SDE I at Oracle (Customer Engineering team), where I deliver backend features, resolve production issues, and enhance C++/Java-based enterprise applications running on Linux.
+                </p>
+                <p>
+                  Previously, I worked as a Project Intern at Oracle and collaborated with AI-focused startups. I have hands-on experience building Generative AI applications and a deep interest in AI tooling — MCPs, RAG systems, AI agents, and developer-focused automation.
+                </p>
+                <div className="skills-title">// Core Skills</div>
+                <div className="skills-grid">
+                  {['Java', 'C++', 'Python', 'JavaScript', 'Spring Framework', 'Node.js / Express.js', 'LangGraph / LangChain', 'Git', 'Docker', 'AWS', 'NoSQL', 'MySQL'].map(s => (
+                    <div key={s} className="skill-tag">{s}</div>
+                  ))}
+                </div>
+              </div>
+              <div className="about-terminal">
+                <div className="terminal-bar">
+                  <div className="t-dot red" /><div className="t-dot yellow" /><div className="t-dot green" />
+                  <div className="terminal-title">abhisekh.json</div>
+                </div>
+                <div className="terminal-body">
+                  <span className="t-line"><span className="t-prompt">$</span> <span className="t-cmd">cat abhisekh.json</span></span>
+                  <span className="t-line t-output">{'{'}</span>
+                  <span className="t-line t-output">  <span className="t-key">"name"</span>: <span className="t-val">"Abhisekh Yadav"</span>,</span>
+                  <span className="t-line t-output">  <span className="t-key">"role"</span>: <span className="t-val">"SWE @Oracle"</span>,</span>
+                  <span className="t-line t-output">  <span className="t-key">"location"</span>: <span className="t-val">"Bengaluru (Remote), IN 🇮🇳"</span>,</span>
+                  <span className="t-line t-output">  <span className="t-key">"college"</span>: <span className="t-val">"IIIT Gwalior 🎓"</span>,</span>
+                  <span className="t-line t-output">  <span className="t-key">"leetcode"</span>: <span className="t-val">"Knight ⚔️🏆 2050"</span>,</span>
+                  <span className="t-line t-output">  <span className="t-key">"codeforces"</span>: <span className="t-val">"Specialist 🩵"</span>,</span>
+                  <span className="t-line t-output">  <span className="t-key">"passion"</span>: [</span>
+                  <span className="t-line t-output">    <span className="t-val">"Learning New Tech & Tools"</span>,</span>
+                  <span className="t-line t-output">    <span className="t-val">"LeetCoding"</span>,</span>
+                  <span className="t-line t-output">    <span className="t-val">"Building Scalable Applications"</span>,</span>
+                  <span className="t-line t-output">    <span className="t-val">"Practicing System Design and Optimizations"</span>,</span>
+                  <span className="t-line t-output">    <span className="t-val">"Watching ⚽"</span></span>
+                  <span className="t-line t-output">  ]</span>
+                  <span className="t-line t-output">{'}'}</span>
+                  <span className="t-line" style={{ marginTop: '0.5rem' }}><span className="t-prompt">$</span> <span className="cursor" /></span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* EXPERIENCE */}
+          <section id="experience">
+            <div className="section-header">
+              <div className="section-tag">Work Experience</div>
+              <h2 className="section-title">Where I've <span>Worked</span></h2>
+              <div className="section-line" />
+            </div>
+            <div className="exp-timeline">
+              {experience.map((exp, i) => (
+                <div key={i} className="exp-item">
+                  <div className="exp-meta">
+                    <div className="exp-company">{exp.company}</div>
+                    <div className="exp-period">{exp.period}</div>
+                  </div>
+                  <div className="exp-role">{exp.role}</div>
+                  <div className="exp-desc">{exp.desc}</div>
+                  <div className="exp-tags">
+                    {exp.tags.map(t => <span key={t} className="exp-tag">{t}</span>)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* PROJECTS */}
+          <section id="projects">
+            <div className="section-header">
+              <div className="section-tag">Projects</div>
+              <h2 className="section-title">Things I've <span>Built</span></h2>
+              <div className="section-line" />
+            </div>
+            <div className="projects-grid">
+              {projects.map((p, i) => (
+                <div key={i} className="project-card">
+                  <div className="project-header">
+                    <div className="project-num">{`// project_${p.num}`}</div>
+                    <div className="project-name">{p.name}</div>
+                  </div>
+                  <div className="project-body">
+                    <div className="project-desc">{p.desc}</div>
+                    <div className="project-stack">
+                      {p.stack.map(s => <span key={s} className="stack-tag">{s}</span>)}
+                    </div>
+                    <div className="project-links">
+                      <a href={p.github} target="_blank" rel="noopener noreferrer" className="project-link">⌥ GitHub</a>
+                      <a href={p.live} target="_blank" rel="noopener noreferrer" className="project-link">↗ Live Demo</a>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* RESUME */}
+          <section id="resume">
+            <div className="section-header">
+              <div className="section-tag">Resume</div>
+              <h2 className="section-title">Download <span>CV</span></h2>
+              <div className="section-line" />
+            </div>
+            <div className="resume-card">
+              <div className="resume-icon">📄</div>
+              <div className="resume-title">Abhisekh_Yadav_Oracle.pdf</div>
+              <div className="resume-sub">Software Engineer with 2+ years of experience. Updated June 2026. Available for full-time opportunities.</div>
+              <div className="resume-meta">
+                <span>📁 PDF Format</span>
+                <span>📅 Updated June 2026</span>
+                <span>📏 ~200 KB</span>
+              </div>
+              <a
+                href="https://drive.google.com/uc?export=download&id=1TkqMyrjfaK8t--fifJcpZkh8bqXZYdX8"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-primary"
+                style={{ display: 'inline-flex', margin: '0 auto' }}
+              >
+                ⬇ Download Resume
+              </a>
+            </div>
+          </section>
+
+          {/* CONTACT */}
+          <section id="contact">
+            <div className="section-header">
+              <div className="section-tag">Contact</div>
+              <h2 className="section-title">Get In <span>Touch</span></h2>
+              <div className="section-line" />
+            </div>
+            <div className="contact-grid">
+              <div className="contact-info">
+                <h3>// Let's build something together</h3>
+                <p style={{ fontSize: '0.9rem', color: 'rgba(232,232,240,0.6)', lineHeight: '1.8', marginBottom: '2rem' }}>
+                  Open to full-time roles, freelance projects, and collaboration on interesting open source problems. Response time is usually &lt;24 hours.
+                </p>
+                <div className="contact-links">
+                  <a href="mailto:y.abhisekhmessi535@email.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="contact-link">
+                    <div className="contact-link-icon" style={{ background: 'rgba(0,255,65,0.1)' }}>✉</div>
+                    <div><div className="contact-link-text">y.abhisekhmessi535@email.com</div><div className="contact-link-sub">Email — fastest response</div></div>
+                  </a>
+                  <a href="https://www.linkedin.com/in/bcsabhisekh/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="contact-link">
+                    <div className="contact-link-icon" style={{ background: 'rgba(0,212,255,0.1)' }}>in</div>
+                    <div><div className="contact-link-text">linkedin.com/in/bcsabhisekh</div><div className="contact-link-sub">LinkedIn</div></div>
+                  </a>
+                  <a href="https://github.com/bcsabhisekh"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="contact-link">
+                    <div className="contact-link-icon" style={{ background: 'rgba(123,47,255,0.1)' }}>⌥</div>
+                    <div><div className="contact-link-text">github.com/bcsabhisekh</div><div className="contact-link-sub">GitHub — see my code</div></div>
+                  </a>
+                </div>
+              </div>
+              <form className="contact-form" onSubmit={handleSubmit}>
+                <div className="form-group">
+                  <label className="form-label">Name</label>
+                  <input className="form-input" placeholder="Jane Doe" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Email</label>
+                  <input type="email" className="form-input" placeholder="jane@example.com" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} required />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Message</label>
+                  <textarea className="form-textarea" placeholder="Tell me about your project..." value={formData.message} onChange={e => setFormData({ ...formData, message: e.target.value })} required />
+                </div>
+
+                {status === 'success' && (
+                  <div className="form-status success">
+                    ✓ Message sent! I'll get back to you within 24 hours.
+                  </div>
+                )}
+                {status === 'error' && (
+                  <div className="form-status error">
+                    ✗ Something went wrong. Please check your EmailJS credentials or try again.
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  style={{ alignSelf: 'flex-start' }}
+                  disabled={status === 'sending'}
+                >
+                  {status === 'sending' ? '⟳ Sending...' : '⌘ Send Message'}
+                </button>
+              </form>
+            </div>
+          </section>
+
+          <footer>
+            <div>Built with <span>React</span> + a lot of ❤️</div>
+            <div>© 2026 <span>Abhisekh</span>. All rights reserved.</div>
+            <div style={{ fontFamily: 'JetBrains Mono', fontSize: '0.68rem', color: 'rgba(107,114,128,0.5)' }}>v1.0.0</div>
+          </footer>
+        </>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+
+</html>
